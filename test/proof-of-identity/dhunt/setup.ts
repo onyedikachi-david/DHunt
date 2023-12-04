@@ -15,6 +15,8 @@ export type DHuntArgs = {
 // error DHunt__Suspended();
 // error DHunt__NoIdentityNFT();
 // error DHunt__ZeroAddress();
+// error DHunt__CompetencyRating(uint256 rating, uint256 threshold);
+// error DHunt__AttributeExpired(string attribute, uint256 expiry);
 
 type IdErrorKey = keyof typeof DHUNT_ERRORS;
 
@@ -22,6 +24,8 @@ const DHUNT_ERRORS = {
     SUSPENDED: "DHunt__Suspended",
     NO_ID: "DHunt_NoIdentityNFT",
     ZERO_ADDRESS: "DHunt_ZeroAddress",
+    COMPETENCY_RATING: "DHunt__CompetencyRating",
+    ATTRIBUTE_EXPIRED: "DHunt__AttributeExpired",
 } as const satisfies Record<string, string>;
 
 export function dHuntError(err: IdErrorKey): string {

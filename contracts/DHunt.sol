@@ -68,6 +68,8 @@ contract DHunt is AccessControl {
      */
     event POIAddressUpdated(address indexed poiAddress);
 
+    event CompetencyRatingThresholdUpdated(uint256 threshold);
+
     // ERRORS
     error DHunt__ZeroAddress();
 
@@ -98,7 +100,7 @@ contract DHunt is AccessControl {
     modifier onlyPermissioned(address account) {
         if (!_hasID(account)) revert DHunt__NoIdentityNFT();
 
-        if (!_isSuspended(account)) revert DHunt__Suspended();
+        if (_isSuspended(account)) revert DHunt__Suspended();
 
         // _checkUserTypeExn(account);
         _checkCompetencyRatingExn(account);
@@ -106,9 +108,8 @@ contract DHunt is AccessControl {
     }
 
     // CONTRUCTOR
-    constructor(address proofOfIdentity_, uint256 competencyRatingThreshold_) {
+    constructor(address proofOfIdentity_) {
         _setPOIAddress(proofOfIdentity_);
-        setCompetencyRatingThreshold(competencyRatingThreshold_);
     }
 
     // FUNCTIONS
@@ -116,7 +117,8 @@ contract DHunt is AccessControl {
         string memory name,
         string memory description,
         uint256 reward,
-        bool requiresAcceptance
+        bool requiresAcceptance,
+        uint256 competencyRatingThreshold_
     ) external payable {
         // Check that the msg.value sent equals the reward.
         require(msg.value == reward, "Sent value must equal the reward");
@@ -132,6 +134,7 @@ contract DHunt is AccessControl {
         });
         bounties.push(newBounty);
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        setCompetencyRatingThreshold(competencyRatingThreshold_);
 
         uint newBountyId = bounties.length - 1;
         emit BountyCreated(newBountyId, name, description, reward, msg.sender);
@@ -258,23 +261,35 @@ contract DHunt is AccessControl {
         view
         returns (string memory name, string memory description, uint256 amount)
     {
-        // ...
+        require(bountyId < bounties.length, "Bounty does not exist");
+        Bounty memory bounty = bounties[bountyId];
+        return (bounty.name, bounty.description, bounty.reward);
     }
 
     function getBounties() public view returns (uint256[] memory bountyIds) {
-        // ...
+        uint256 bountyCount = bounties.length;
+        bountyIds = new uint256[](bountyCount);
+        for (uint256 i = 0; i < bountyCount; i++) {
+            bountyIds[i] = i;
+        }
+        return bountyIds;
     }
 
     function getSolution(
         uint256 solutionId
     ) public view returns (string memory solution, address developer) {
-        // ...
+        require(solutionId < solutions.length, "Solution does not exist");
+        Solution memory solu = solutions[solutionId];
+        return (solu.solution, solu.developer);
     }
 
-    function getSolutions(
-        uint256 bountyId
-    ) public view returns (uint256[] memory solutionIds) {
-        // ...
+    function getSolutions() public view returns (uint256[] memory solutionIds) {
+        uint256 solutionCount = solutions.length;
+        solutionIds = new uint256[](solutionCount);
+        for (uint256 i = 0; i < solutionCount; i++) {
+            solutionIds[i] = i;
+        }
+        return solutionIds;
     }
 
     /**
